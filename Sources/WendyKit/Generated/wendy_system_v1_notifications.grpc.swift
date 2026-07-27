@@ -57,9 +57,9 @@ extension Wendy_System_V1_NotificationService {
     ///
     /// > Source IDL Documentation:
     /// >
-    /// > NotificationService is available only through an app's private Wendy System
-    /// > API socket. The agent/daemon binds calls to the app identity represented by
-    /// > that socket; requests intentionally carry no app, device, or organization ID.
+    /// > NotificationService is available only through an app's private app-facing
+    /// > socket. The agent/daemon binds calls to the app identity represented by that
+    /// > socket; requests intentionally carry no app, device, or organization ID.
     internal protocol ClientProtocol: Sendable {
         /// Call the "Send" method.
         ///
@@ -89,9 +89,9 @@ extension Wendy_System_V1_NotificationService {
     ///
     /// > Source IDL Documentation:
     /// >
-    /// > NotificationService is available only through an app's private Wendy System
-    /// > API socket. The agent/daemon binds calls to the app identity represented by
-    /// > that socket; requests intentionally carry no app, device, or organization ID.
+    /// > NotificationService is available only through an app's private app-facing
+    /// > socket. The agent/daemon binds calls to the app identity represented by that
+    /// > socket; requests intentionally carry no app, device, or organization ID.
     internal struct Client<Transport>: ClientProtocol where Transport: GRPCCore.ClientTransport {
         private let client: GRPCCore.GRPCClient<Transport>
 
