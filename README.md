@@ -39,23 +39,21 @@ async context:
 ```swift
 import WendyKit
 
-let response = try await WendyNotification.send(
-    WendyNotificationSendRequest(
-        audience: try WendyAudience(
-            userIDs: ["operator-1"],
-            teamIDs: [7, 12],
-            roles: [.owner, .admin]
-        ),
-        title: "Fire detected",
-        body: "Camera 2 detected smoke.",
-        severity: .critical,
-        deepLink: "wendy://devices/current/live?camera=2",
-        sourceID: "fire-2026-07-23-001",
-        metadata: try WendyNotificationMetadata(["confidence": 0.98])
-    )
+let request = try WendyNotificationSendRequest(
+    audience: WendyAudience(
+        userIDs: ["operator-1"],
+        teamIDs: [7, 12],
+        roles: [.owner, .admin]
+    ),
+    title: "Fire detected",
+    body: "Camera 2 detected smoke.",
+    severity: .critical,
+    deepLink: "wendy://devices/current/live?camera=2",
+    metadata: WendyNotificationMetadata(["confidence": 0.98])
 )
+let response = try await WendyNotification.send(request)
 
-print("notified \(response.recipientCount) recipients")
+print("sent \(response.notificationID) to \(response.recipientCount) recipients")
 ```
 
 Audience selectors use union semantics: a recipient matching any listed user
@@ -65,10 +63,13 @@ be 1...128 safe ASCII bytes, deduplicates and sorts every selector group, and
 accepts at most 100 unique selectors in total. Wendy Cloud remains authoritative
 and caps the resolved union at 10,000 recipients.
 
-`sourceID` is an app-generated idempotency key. Reusing it from the same app
-and device returns `isDuplicate == true` without delivering the Notification
-again. Metadata is optional and supports JSON-compatible nulls, booleans,
-finite numbers, strings, arrays, and objects.
+`notificationID` is the caller-generated canonical Notification UUID v4.
+WendyKit generates one by default and stores it on the request. Reuse the same
+request, or explicitly reuse its `notificationID`, for every retry; creating a
+new request with the default creates a different Notification. Explicit IDs
+must be UUID v4 values. Wendy returns the accepted ID in the response and stores
+its canonical lowercase representation. Metadata is optional and supports
+JSON-compatible nulls, booleans, finite numbers, strings, arrays, and objects.
 
 ## Test it on a real device (WendyProbe)
 

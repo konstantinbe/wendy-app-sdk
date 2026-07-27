@@ -118,8 +118,8 @@ func `send request maps content and nested JSON metadata`() throws {
     "labels": labels,
     "sensor": sensor,
   ])
-  let request = WendyNotificationSendRequest(
-    audience: try WendyAudience(
+  let request = try WendyNotificationSendRequest(
+    audience: WendyAudience(
       userIDs: ["operator-2", "operator-1"],
       teamIDs: [7],
       roles: [.admin]
@@ -128,7 +128,7 @@ func `send request maps content and nested JSON metadata`() throws {
     body: "Pressure fell below the configured threshold.",
     severity: .warning,
     deepLink: "wendy://devices/7/live",
-    sourceID: "leak-17",
+    notificationID: UUID(uuidString: "15a84fd6-a50c-4c5e-836c-8cdb723f5154")!,
     metadata: metadata
   )
 
@@ -141,7 +141,7 @@ func `send request maps content and nested JSON metadata`() throws {
   #expect(proto.body == "Pressure fell below the configured threshold.")
   #expect(proto.severity == .warning)
   #expect(proto.deepLink == "wendy://devices/7/live")
-  #expect(proto.sourceID == "leak-17")
+  #expect(proto.notificationID == "15a84fd6-a50c-4c5e-836c-8cdb723f5154")
   #expect(proto.hasMetadata)
   #expect(proto.metadata.fields["acknowledged"]?.boolValue == false)
   #expect(proto.metadata.fields["reading"]?.numberValue == 12.5)
@@ -151,16 +151,49 @@ func `send request maps content and nested JSON metadata`() throws {
 
 @Test
 func `absent metadata remains absent in the wire request`() throws {
-  let request = WendyNotificationSendRequest(
-    audience: try WendyAudience(teamIDs: [3]),
+  let request = try WendyNotificationSendRequest(
+    audience: WendyAudience(teamIDs: [3]),
     title: "Inspection due",
     body: "Inspect line 2.",
     severity: .info,
-    deepLink: "wendy://devices/8",
-    sourceID: "inspection-3"
+    deepLink: "wendy://devices/8"
   )
 
   #expect(try !Wendy_System_V1_SendRequest(request).hasMetadata)
+}
+
+@Test
+func `default notification ID is UUID v4 and stable across retries`() throws {
+  let request = try WendyNotificationSendRequest(
+    audience: WendyAudience(teamIDs: [3]),
+    title: "Inspection due",
+    body: "Inspect line 2.",
+    severity: .info,
+    deepLink: "wendy://devices/8"
+  )
+
+  let firstAttempt = try Wendy_System_V1_SendRequest(request)
+  let retry = try Wendy_System_V1_SendRequest(request)
+
+  #expect(isNotificationUUIDv4(request.notificationID))
+  #expect(UUID(uuidString: firstAttempt.notificationID) == request.notificationID)
+  #expect(retry.notificationID == firstAttempt.notificationID)
+}
+
+@Test
+func `send request rejects a non-v4 notification ID`() throws {
+  let version1ID = UUID(uuidString: "15a84fd6-a50c-1c5e-836c-8cdb723f5154")!
+
+  #expect(throws: WendyError.invalidRequest("notification_id must be a UUID v4")) {
+    _ = try WendyNotificationSendRequest(
+      audience: WendyAudience(teamIDs: [3]),
+      title: "Inspection due",
+      body: "Inspect line 2.",
+      severity: .info,
+      deepLink: "wendy://devices/8",
+      notificationID: version1ID
+    )
+  }
 }
 
 @Test
@@ -192,13 +225,12 @@ func `non-finite metadata numbers are rejected before transport`() {
 
 @Test
 func `unspecified severity is retained for Client models but rejected when sending`() throws {
-  let request = WendyNotificationSendRequest(
-    audience: try WendyAudience(userIDs: ["user-1"]),
+  let request = try WendyNotificationSendRequest(
+    audience: WendyAudience(userIDs: ["user-1"]),
     title: "Missing severity",
     body: "This request should not be sent.",
     severity: .unspecified,
-    deepLink: "wendy://devices/9",
-    sourceID: "missing-severity"
+    deepLink: "wendy://devices/9"
   )
 
   #expect(throws: WendyError.invalidRequest("severity must be specified")) {
@@ -207,15 +239,27 @@ func `unspecified severity is retained for Client models but rejected when sendi
 }
 
 @Test
-func `send response exposes only delivery outcome`() {
+func `send response exposes the canonical notification ID and recipient count`() throws {
   var proto = Wendy_System_V1_SendResponse()
-  proto.duplicate = true
+  proto.notificationID = "15a84fd6-a50c-4c5e-836c-8cdb723f5154"
   proto.recipientCount = 12
 
-  let response = WendyNotificationSendResponse(proto)
+  let response = try WendyNotificationSendResponse(proto)
 
-  #expect(response.isDuplicate)
+  #expect(response.notificationID == UUID(uuidString: proto.notificationID))
   #expect(response.recipientCount == 12)
+}
+
+@Test
+func `send response rejects a malformed or non-v4 notification ID`() {
+  var proto = Wendy_System_V1_SendResponse()
+
+  for invalidID in ["not-a-uuid", "15a84fd6-a50c-1c5e-836c-8cdb723f5154"] {
+    proto.notificationID = invalidID
+    #expect(throws: WendyError.protocolError("notification_id must be a UUID v4")) {
+      _ = try WendyNotificationSendResponse(proto)
+    }
+  }
 }
 
 @Test(
@@ -237,15 +281,18 @@ func `transport failures map to domain errors`(
 
 @Test
 func `static send delegates without exposing a service API`() async throws {
-  let expected = WendyNotificationSendResponse(isDuplicate: false, recipientCount: 2)
+  let expected = try WendyNotificationSendResponse(
+    notificationID: UUID(uuidString: "fc6274aa-ce21-4235-b5ec-79b782e9f1cb")!,
+    recipientCount: 2
+  )
   let sender = StubNotificationSender(response: expected)
-  let request = WendyNotificationSendRequest(
-    audience: try WendyAudience(roles: [.owner]),
+  let request = try WendyNotificationSendRequest(
+    audience: WendyAudience(roles: [.owner]),
     title: "Device offline",
     body: "The device stopped reporting.",
     severity: .critical,
     deepLink: "wendy://devices/10",
-    sourceID: "offline-10"
+    notificationID: expected.notificationID
   )
 
   let response = try await WendyNotification.send(request, using: sender)
@@ -266,13 +313,12 @@ struct WendySystemEnvironmentTests {
       }
     }
 
-    let request = WendyNotificationSendRequest(
-      audience: try WendyAudience(userIDs: ["user-1"]),
+    let request = try WendyNotificationSendRequest(
+      audience: WendyAudience(userIDs: ["user-1"]),
       title: "Test",
       body: "Test",
       severity: .info,
-      deepLink: "wendy://test",
-      sourceID: "test"
+      deepLink: "wendy://test"
     )
 
     await #expect(throws: WendyError.unavailable) {
