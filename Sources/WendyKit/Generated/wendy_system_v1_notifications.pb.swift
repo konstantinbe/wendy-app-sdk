@@ -156,7 +156,7 @@ nonisolated struct Wendy_System_V1_SendRequest: Sendable {
 
   var deepLink: String = String()
 
-  /// Caller-generated UUID v4. Cloud stores and returns its canonical lowercase form.
+  /// Caller-generated UUID v4, stored and returned as canonical lowercase text.
   var notificationID: String = String()
 
   var metadata: SwiftProtobuf.Google_Protobuf_Struct {
@@ -181,8 +181,10 @@ nonisolated struct Wendy_System_V1_SendResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
+  /// Canonical lowercase UUID v4.
   var notificationID: String = String()
 
+  /// Number of distinct recipient projections persisted, not successful push deliveries.
   var recipientCount: Int32 = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()

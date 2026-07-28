@@ -63,6 +63,12 @@ extension Wendy_System_V1_NotificationService {
     internal protocol ClientProtocol: Sendable {
         /// Call the "Send" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Creates per-user Notifications for the union of users, organization teams, and roles.
+        /// > notification_id is the caller-chosen resource UUID. Any reuse of its canonical UUID,
+        /// > including an otherwise identical request, fails with ALREADY_EXISTS.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Wendy_System_V1_SendRequest` message.
         ///   - serializer: A serializer for `Wendy_System_V1_SendRequest` messages.
@@ -105,6 +111,12 @@ extension Wendy_System_V1_NotificationService {
 
         /// Call the "Send" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Creates per-user Notifications for the union of users, organization teams, and roles.
+        /// > notification_id is the caller-chosen resource UUID. Any reuse of its canonical UUID,
+        /// > including an otherwise identical request, fails with ALREADY_EXISTS.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Wendy_System_V1_SendRequest` message.
         ///   - serializer: A serializer for `Wendy_System_V1_SendRequest` messages.
@@ -140,6 +152,12 @@ extension Wendy_System_V1_NotificationService {
 extension Wendy_System_V1_NotificationService.ClientProtocol {
     /// Call the "Send" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Creates per-user Notifications for the union of users, organization teams, and roles.
+    /// > notification_id is the caller-chosen resource UUID. Any reuse of its canonical UUID,
+    /// > including an otherwise identical request, fails with ALREADY_EXISTS.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Wendy_System_V1_SendRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -168,6 +186,12 @@ extension Wendy_System_V1_NotificationService.ClientProtocol {
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
 extension Wendy_System_V1_NotificationService.ClientProtocol {
     /// Call the "Send" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Creates per-user Notifications for the union of users, organization teams, and roles.
+    /// > notification_id is the caller-chosen resource UUID. Any reuse of its canonical UUID,
+    /// > including an otherwise identical request, fails with ALREADY_EXISTS.
     ///
     /// - Parameters:
     ///   - message: request message to send.

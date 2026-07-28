@@ -9,10 +9,14 @@ public struct WendyNotificationSendRequest: Sendable, Hashable {
   public var severity: WendyNotificationSeverity
   public var deepLink: String
 
-  /// The canonical caller-generated Notification UUID v4.
+  /// The caller-generated UUID v4 identifying the Notification resource.
   ///
-  /// The default is generated once when this request is initialized. Retain and
-  /// resend the same request—or explicitly reuse this value—for retries.
+  /// The default is generated once and retained by this request. Reusing the ID
+  /// after a successful creation throws `WendyError.notificationAlreadyExists`;
+  /// Wendy does not replay the original response. Retaining it is appropriate
+  /// when an attempt was rejected locally or was known not to reach Wendy Cloud.
+  /// After an ambiguous post-Cloud failure, a retry may report that the resource
+  /// already exists.
   public let notificationID: UUID
 
   public var metadata: WendyNotificationMetadata?

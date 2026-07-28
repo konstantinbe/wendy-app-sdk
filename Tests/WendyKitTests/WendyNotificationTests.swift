@@ -163,7 +163,7 @@ func `absent metadata remains absent in the wire request`() throws {
 }
 
 @Test
-func `default notification ID is UUID v4 and stable across retries`() throws {
+func `default notification ID is UUID v4 and retained on its request`() throws {
   let request = try WendyNotificationSendRequest(
     audience: WendyAudience(teamIDs: [3]),
     title: "Inspection due",
@@ -172,12 +172,12 @@ func `default notification ID is UUID v4 and stable across retries`() throws {
     deepLink: "wendy://devices/8"
   )
 
-  let firstAttempt = try Wendy_System_V1_SendRequest(request)
-  let retry = try Wendy_System_V1_SendRequest(request)
+  let firstEncoding = try Wendy_System_V1_SendRequest(request)
+  let secondEncoding = try Wendy_System_V1_SendRequest(request)
 
   #expect(isNotificationUUIDv4(request.notificationID))
-  #expect(UUID(uuidString: firstAttempt.notificationID) == request.notificationID)
-  #expect(retry.notificationID == firstAttempt.notificationID)
+  #expect(UUID(uuidString: firstEncoding.notificationID) == request.notificationID)
+  #expect(secondEncoding.notificationID == firstEncoding.notificationID)
 }
 
 @Test
@@ -265,6 +265,7 @@ func `send response rejects a malformed or non-v4 notification ID`() {
 @Test(
   arguments: [
     (RPCError.Code.permissionDenied, WendyError.notificationsEntitlementRequired),
+    (RPCError.Code.alreadyExists, WendyError.notificationAlreadyExists),
     (RPCError.Code.unimplemented, WendyError.unavailable),
     (
       RPCError.Code.invalidArgument,
@@ -277,6 +278,14 @@ func `transport failures map to domain errors`(
   expected: WendyError
 ) {
   #expect(WendyError(RPCError(code: code, message: "title is required")) == expected)
+}
+
+@Test
+func `already-exists error explains strict resource creation semantics`() {
+  #expect(
+    WendyError.notificationAlreadyExists.description
+      == "A Notification with this notification ID already exists. Wendy does not replay the original creation response."
+  )
 }
 
 @Test

@@ -61,15 +61,22 @@ ID, team ID, or organization role is included, and overlapping matches still
 receive the Notification only once. WendyKit trims user IDs, requires them to
 be 1...128 safe ASCII bytes, deduplicates and sorts every selector group, and
 accepts at most 100 unique selectors in total. Wendy Cloud remains authoritative
-and caps the resolved union at 10,000 recipients.
+and caps the resolved union at 10,000 recipients. `recipientCount` is the number
+of distinct recipient projections persisted, not successful push deliveries.
 
-`notificationID` is the caller-generated canonical Notification UUID v4.
-WendyKit generates one by default and stores it on the request. Reuse the same
-request, or explicitly reuse its `notificationID`, for every retry; creating a
-new request with the default creates a different Notification. Explicit IDs
-must be UUID v4 values. Wendy returns the accepted ID in the response and stores
-its canonical lowercase representation. Metadata is optional and supports
-JSON-compatible nulls, booleans, finite numbers, strings, arrays, and objects.
+`notificationID` is the caller-generated UUID v4 identity of the Notification
+resource. WendyKit generates one by default and retains it on the request;
+explicit IDs must also be UUID v4 values. The first successful creation returns
+the accepted ID and recipient count. Any later canonical reuse, including an
+otherwise identical request, throws `WendyError.notificationAlreadyExists`
+instead of replaying that response. A new UUID creates a distinct Notification.
+
+Retaining one request and its UUID still prevents duplicate resources and is
+appropriate when an attempt was rejected locally or was known not to be
+forwarded. If an attempt fails ambiguously after reaching Wendy Cloud, retrying
+it can throw `notificationAlreadyExists` because the resource may already have
+been created. Metadata is optional and supports JSON-compatible nulls, booleans,
+finite numbers, strings, arrays, and objects.
 
 ## Test it on a real device (WendyProbe)
 

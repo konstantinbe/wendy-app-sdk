@@ -18,7 +18,7 @@ public enum WendyError: Error, Sendable, Equatable {
   /// WendyKit received malformed or unexpected protocol data.
   case protocolError(String)
 
-  /// The app is not running with a supported WendyOS System API runtime.
+  /// The app is not running with a supported WendyOS app-facing connection.
   /// This can also mean the app did not declare the capability's entitlement.
   case unavailable
 
@@ -27,6 +27,10 @@ public enum WendyError: Error, Sendable, Equatable {
 
   /// The request cannot be represented by the Wendy API.
   case invalidRequest(String)
+
+  /// The Notification resource UUID has already been used successfully.
+  /// Wendy does not replay the original creation response.
+  case notificationAlreadyExists
 
   /// WendyOS rejected or could not complete the operation.
   case operationFailed(String)
@@ -57,11 +61,14 @@ extension WendyError: LocalizedError {
       return "WendyKit received invalid protocol data: \(reason)"
     case .unavailable:
       return
-        "The Wendy System API is unavailable. Run the app on a supported WendyOS version and declare the notifications entitlement."
+        "The private Wendy app-facing connection is unavailable. Run the app on a supported WendyOS version and declare the notifications entitlement."
     case .notificationsEntitlementRequired:
       return "Sending notifications requires the notifications entitlement in wendy.json."
     case .invalidRequest(let reason):
       return "The Wendy request is invalid: \(reason)"
+    case .notificationAlreadyExists:
+      return
+        "A Notification with this notification ID already exists. Wendy does not replay the original creation response."
     case .operationFailed(let reason):
       return "WendyOS could not complete the operation: \(reason)"
     }

@@ -8,7 +8,10 @@ extension WendyNotification {
   /// Sends an operator-facing notification through WendyOS.
   ///
   /// The app must declare the `notifications` entitlement in `wendy.json` and
-  /// run on a WendyOS version that provides the System API.
+  /// run on a WendyOS version that provides the private app-facing connection.
+  /// The first successful creation returns a response. Reusing its canonical
+  /// `notificationID` throws `WendyError.notificationAlreadyExists`; Wendy does
+  /// not replay the original response.
   public static func send(
     _ request: WendyNotificationSendRequest
   ) async throws -> WendyNotificationSendResponse {
@@ -189,6 +192,8 @@ extension WendyError {
       self = .notificationsEntitlementRequired
     case .invalidArgument:
       self = .invalidRequest(error.message)
+    case .alreadyExists:
+      self = .notificationAlreadyExists
     case .unimplemented, .unavailable:
       self = .unavailable
     default:
