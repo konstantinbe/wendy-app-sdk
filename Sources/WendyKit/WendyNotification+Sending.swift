@@ -178,10 +178,7 @@ extension WendyNotificationSendResponse {
     else {
       throw WendyError.protocolError("notification_id must be a UUID v4")
     }
-    try self.init(
-      notificationID: notificationID,
-      recipientCount: Int(response.recipientCount)
-    )
+    try self.init(notificationID: notificationID)
   }
 }
 

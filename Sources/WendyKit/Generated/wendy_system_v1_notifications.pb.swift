@@ -184,9 +184,6 @@ nonisolated struct Wendy_System_V1_SendResponse: Sendable {
   /// Canonical lowercase UUID v4.
   var notificationID: String = String()
 
-  /// Number of distinct recipient projections persisted, not successful push deliveries.
-  var recipientCount: Int32 = 0
-
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -310,7 +307,7 @@ nonisolated extension Wendy_System_V1_SendRequest: SwiftProtobuf.Message, SwiftP
 
 nonisolated extension Wendy_System_V1_SendResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".SendResponse"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}notification_id\0\u{3}recipient_count\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}notification_id\0\u{b}recipient_count\0\u{c}\u{2}\u{1}")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -319,7 +316,6 @@ nonisolated extension Wendy_System_V1_SendResponse: SwiftProtobuf.Message, Swift
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.notificationID) }()
-      case 2: try { try decoder.decodeSingularInt32Field(value: &self.recipientCount) }()
       default: break
       }
     }
@@ -329,15 +325,11 @@ nonisolated extension Wendy_System_V1_SendResponse: SwiftProtobuf.Message, Swift
     if !self.notificationID.isEmpty {
       try visitor.visitSingularStringField(value: self.notificationID, fieldNumber: 1)
     }
-    if self.recipientCount != 0 {
-      try visitor.visitSingularInt32Field(value: self.recipientCount, fieldNumber: 2)
-    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Wendy_System_V1_SendResponse, rhs: Wendy_System_V1_SendResponse) -> Bool {
     if lhs.notificationID != rhs.notificationID {return false}
-    if lhs.recipientCount != rhs.recipientCount {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -239,15 +239,13 @@ func `unspecified severity is retained for Client models but rejected when sendi
 }
 
 @Test
-func `send response exposes the canonical notification ID and recipient count`() throws {
+func `send response exposes only the canonical notification ID`() throws {
   var proto = Wendy_System_V1_SendResponse()
   proto.notificationID = "15a84fd6-a50c-4c5e-836c-8cdb723f5154"
-  proto.recipientCount = 12
 
   let response = try WendyNotificationSendResponse(proto)
 
   #expect(response.notificationID == UUID(uuidString: proto.notificationID))
-  #expect(response.recipientCount == 12)
 }
 
 @Test
@@ -291,8 +289,7 @@ func `already-exists error explains strict resource creation semantics`() {
 @Test
 func `static send delegates without exposing a service API`() async throws {
   let expected = try WendyNotificationSendResponse(
-    notificationID: UUID(uuidString: "fc6274aa-ce21-4235-b5ec-79b782e9f1cb")!,
-    recipientCount: 2
+    notificationID: UUID(uuidString: "fc6274aa-ce21-4235-b5ec-79b782e9f1cb")!
   )
   let sender = StubNotificationSender(response: expected)
   let request = try WendyNotificationSendRequest(

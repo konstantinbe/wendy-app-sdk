@@ -53,7 +53,7 @@ let request = try WendyNotificationSendRequest(
 )
 let response = try await WendyNotification.send(request)
 
-print("sent \(response.notificationID) to \(response.recipientCount) recipients")
+print("sent Notification \(response.notificationID)")
 ```
 
 Audience selectors use union semantics: a recipient matching any listed user
@@ -61,13 +61,14 @@ ID, team ID, or organization role is included, and overlapping matches still
 receive the Notification only once. WendyKit trims user IDs, requires them to
 be 1...128 safe ASCII bytes, deduplicates and sorts every selector group, and
 accepts at most 100 unique selectors in total. Wendy Cloud remains authoritative
-and caps the resolved union at 10,000 recipients. `recipientCount` is the number
-of distinct recipient projections persisted, not successful push deliveries.
+and caps the resolved union at 10,000 recipients. Recipient totals are intentionally
+omitted from the app-facing response because team and role counts can disclose
+organization membership.
 
 `notificationID` is the caller-generated UUID v4 identity of the Notification
 resource. WendyKit generates one by default and retains it on the request;
 explicit IDs must also be UUID v4 values. The first successful creation returns
-the accepted ID and recipient count. Any later canonical reuse, including an
+the accepted ID. Any later canonical reuse, including an
 otherwise identical request, throws `WendyError.notificationAlreadyExists`
 instead of replaying that response. A new UUID creates a distinct Notification.
 

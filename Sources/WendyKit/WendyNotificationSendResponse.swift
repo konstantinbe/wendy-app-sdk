@@ -8,15 +8,11 @@ public struct WendyNotificationSendResponse: Sendable, Hashable {
   /// The caller-generated resource UUID v4 accepted by Wendy.
   public let notificationID: UUID
 
-  /// The distinct recipient projections persisted, not successful push deliveries.
-  public let recipientCount: Int
-
-  public init(notificationID: UUID, recipientCount: Int) throws {
+  public init(notificationID: UUID) throws {
     guard isNotificationUUIDv4(notificationID) else {
       throw WendyError.invalidRequest("notification_id must be a UUID v4")
     }
 
     self.notificationID = notificationID
-    self.recipientCount = recipientCount
   }
 }
