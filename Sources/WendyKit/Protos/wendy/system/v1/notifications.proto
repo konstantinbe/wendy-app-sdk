@@ -56,7 +56,4 @@ message SendResponse {
   // Canonical lowercase UUID v4.
   string notification_id = 1;
 
-  // Recipient totals can disclose organization membership through team or role audiences.
-  reserved 2;
-  reserved "recipient_count";
 }
